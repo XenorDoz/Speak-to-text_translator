@@ -14,7 +14,7 @@ def load():
     load_model()
 
 def load_variables():
-    global BASE_DIR, ASSET_FOLDER, ENGLISH, FRENCH, RUSSIAN, languages, model_size, files, last_text, full_text, choosen_lang
+    global BASE_DIR, ASSET_FOLDER, ENGLISH, FRENCH, RUSSIAN, languages, model_size, files, last_text, full_text, choosen_lang, model_task
     print("Loading variables...")
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     ASSET_FOLDER = "assets"
@@ -27,6 +27,7 @@ def load_variables():
     last_text = ""
     full_text = ""
     choosen_lang = None
+    model_task = "tanscribe"
     print("Variables loaded!")
 
 def load_model():
@@ -81,7 +82,7 @@ def read_recorded_audio(filename = None, file_path = None):
     if not filename or not file_path:
         filename, file_path = get_first_audio_from_recorded_samples()
     
-    segments, info = model.transcribe(file_path, beam_size=5,language = choosen_lang)
+    segments, info = model.transcribe(file_path, beam_size=5,language = choosen_lang, task=model_task)
 
     if c.LOGGING:
         print("Detected language '%s' with probability %f" % (info.language, info.language_probability))
@@ -138,7 +139,7 @@ def choose_lang():
     global choosen_lang
     selected = None
     languages = {0: None, 1: "en", 2: "fr", 3: "ru"}
-    print("Do you know what will be the transcripted language ?")
+    print("Do you know what will be the language spoken ?")
     for elem in languages.items():
         print(f"[{elem[0]}] {elem[1]}")
     
@@ -149,12 +150,21 @@ def choose_lang():
             print("Please type the index of the desired language")
     choosen_lang = languages[selected]
     
-def choose_translated():
+def choose_mode():
+    global model_task
+    selected = None
+    while not isinstance(selected, int):
+        try:
+            selected = int(input("Do you want to transcribe (1) or translate to english (2)?"))
+        except:
+            print("Please type 1 or 2.")
+    if selected == 1:
+        model_task = "transcribe"
+    else:
+        model_task = "translate"
     pass
 
 if __name__ == "__main__":
     main_recorded_files()
 
-# TODO: Link record_audio.py and speech_to_text.py
-# TODO: Manage the recorded files to be deleted after used
-#       -> delete function, called by whatever would use the audio if possible
+# TODO: Check if file is considered empty before feeding to model, this will limits lags

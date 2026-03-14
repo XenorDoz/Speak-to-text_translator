@@ -20,6 +20,7 @@ def record_loop():
     pass
 
 def stt_loop():
+    speech_to_text.choose_mode()
     speech_to_text.choose_lang()
     ready_to_rec.set()
     while True:
