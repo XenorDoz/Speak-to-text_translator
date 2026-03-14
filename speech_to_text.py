@@ -14,7 +14,7 @@ def load():
     load_model()
 
 def load_variables():
-    global BASE_DIR, ASSET_FOLDER, ENGLISH, FRENCH, RUSSIAN, languages, model_size, files, last_text, full_text
+    global BASE_DIR, ASSET_FOLDER, ENGLISH, FRENCH, RUSSIAN, languages, model_size, files, last_text, full_text, choosen_lang
     print("Loading variables...")
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     ASSET_FOLDER = "assets"
@@ -26,6 +26,7 @@ def load_variables():
     files = {}
     last_text = ""
     full_text = ""
+    choosen_lang = None
     print("Variables loaded!")
 
 def load_model():
@@ -80,7 +81,7 @@ def read_recorded_audio(filename = None, file_path = None):
     if not filename or not file_path:
         filename, file_path = get_first_audio_from_recorded_samples()
     
-    segments, info = model.transcribe(file_path, beam_size=5,)
+    segments, info = model.transcribe(file_path, beam_size=5,language = choosen_lang)
 
     if c.LOGGING:
         print("Detected language '%s' with probability %f" % (info.language, info.language_probability))
@@ -88,6 +89,10 @@ def read_recorded_audio(filename = None, file_path = None):
     full_text = "" # This is the final text that will be sent
 
     for segment in segments:
+        if segment.no_speech_prob > 0.6:
+            if c.LOGGING:
+                print("No speech prob high, ignored segment.")
+            continue
         if c.LOGGING:
             print(f"Transcripting {filename} (guesssed {info.language})...")
             print(f"Transcripted in {(segment.end - segment.start):.2f}s!")
@@ -128,6 +133,24 @@ def main():
 def main_recorded_files():
     filename, file_path = read_recorded_audio()
     delete_file(file_path)
+
+def choose_lang():
+    global choosen_lang
+    selected = None
+    languages = {0: None, 1: "en", 2: "fr", 3: "ru"}
+    print("Do you know what will be the transcripted language ?")
+    for elem in languages.items():
+        print(f"[{elem[0]}] {elem[1]}")
+    
+    while not isinstance(selected, int):
+        try:
+            selected = int(input("Please type the index: "))
+        except:
+            print("Please type the index of the desired language")
+    choosen_lang = languages[selected]
+    
+def choose_translated():
+    pass
 
 if __name__ == "__main__":
     main_recorded_files()

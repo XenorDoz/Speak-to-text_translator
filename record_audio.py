@@ -31,14 +31,14 @@ def record_audio(duration = DURATION, samplerate = 48000):
     audio = sd.rec(frames=int(duration * samplerate), samplerate=samplerate, channels=CHANNELS, dtype='float32')
     sd.wait()
 
-    # If we have something before, we add it to the beginning of the new file
-    if previous_tail is not None:
-        audio = np.concatenate([previous_tail, audio], axis=0)
-
     # Silence detection
     if is_silent(audio):
         if c.LOGGING:
             print("Ignored silence")
+
+    # If we have something before, we add it to the beginning of the new file
+    if previous_tail is not None:
+        audio = np.concatenate([previous_tail, audio], axis=0)
 
     # We prepare the next overlap
     tail_length = int(c.OVERLAP * samplerate)

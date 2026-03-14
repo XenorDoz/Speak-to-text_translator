@@ -5,10 +5,11 @@ import time
 import config as c
 
 record_done = threading.Event()
-model_ready = threading.Event()
+ready_to_rec = threading.Event()
 
 def record_loop():
     # Calls the initial print
+    ready_to_rec.wait()
     record_audio.live_record(duration=c.DURATION)
     while True:
         # Starting recording
@@ -19,6 +20,8 @@ def record_loop():
     pass
 
 def stt_loop():
+    speech_to_text.choose_lang()
+    ready_to_rec.set()
     while True:
         record_done.wait()
         speech_to_text.main_recorded_files()
